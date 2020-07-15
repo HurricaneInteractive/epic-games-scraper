@@ -6,6 +6,7 @@ use scraper::{Html, Selector};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use regex::Regex;
 
 type GenericError = Box<dyn std::error::Error + Send + Sync>;
 type Result<T> = std::result::Result<T, GenericError>;
@@ -19,7 +20,23 @@ struct IncomingBody {
 struct GameDetails {
     url: String,
     id: String,
-    name: String
+    name: String,
+    r#type: String
+}
+
+fn format_game_detail(href: &str) -> GameDetails {
+    let ending_re = Regex::new(r"/home$").unwrap();
+    let id_re = Regex::new(r"/(product|bundles)/(.*)/?").unwrap();
+    let clean_url = ending_re.replace(href, "");
+    let clean_string = (&clean_url).to_string();
+    let id_cap = id_re.captures(&clean_string).unwrap();
+
+    GameDetails {
+        url: String::from(href),
+        id: (&id_cap[2]).to_string(),
+        name: String::from(""),
+        r#type: (&id_cap[1]).to_string()
+    }
 }
 
 fn create_game_details(dom: &String) -> Vec<GameDetails> {
@@ -28,12 +45,8 @@ fn create_game_details(dom: &String) -> Vec<GameDetails> {
     let mut game_details: Vec<GameDetails> = Vec::new();
 
     for element in fragment.select(&selector) {
-        // TODO: All the rest of the details
-        game_details.push(GameDetails {
-            url: String::from(element.value().attr("href").unwrap()),
-            id: String::from(""),
-            name: String::from("")
-        });
+        let href: &str = element.value().attr("href").unwrap();
+        game_details.push(format_game_detail(&href));
     }
 
     game_details

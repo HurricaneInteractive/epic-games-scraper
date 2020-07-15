@@ -12,7 +12,8 @@ I created a small API with [hyper](https://hyper.rs/) that will process the DOM 
 Array<{
   url: String,
   name: String,
-  id: String
+  id: String,
+  type: "product" | "bundles"
 }>
 ```
 
