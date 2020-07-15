@@ -2,7 +2,7 @@ use hyper::{Body, Request, Response, Server, Method, StatusCode, header, HeaderM
 use hyper::service::{make_service_fn, service_fn};
 use serde::{Serialize, Deserialize};
 use bytes::buf::BufExt;
-use scraper::{Html, Selector};
+use scraper::{Html, Selector, ElementRef};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -24,17 +24,20 @@ struct GameDetails {
     r#type: String
 }
 
-fn format_game_detail(href: &str) -> GameDetails {
+fn format_game_detail(href: &str, anchor: &ElementRef) -> GameDetails {
     let ending_re = Regex::new(r"/home$").unwrap();
     let id_re = Regex::new(r"/(product|bundles)/(.*)/?").unwrap();
     let clean_url = ending_re.replace(href, "");
     let clean_string = (&clean_url).to_string();
     let id_cap = id_re.captures(&clean_string).unwrap();
 
+    let title_selector = Selector::parse("div > div > div > span:first-child").unwrap();
+    let title = anchor.select(&title_selector).next().unwrap();
+
     GameDetails {
         url: String::from(href),
         id: (&id_cap[2]).to_string(),
-        name: String::from(""),
+        name: title.inner_html(),
         r#type: (&id_cap[1]).to_string()
     }
 }
@@ -46,7 +49,7 @@ fn create_game_details(dom: &String) -> Vec<GameDetails> {
 
     for element in fragment.select(&selector) {
         let href: &str = element.value().attr("href").unwrap();
-        game_details.push(format_game_detail(&href));
+        game_details.push(format_game_detail(&href, &element));
     }
 
     game_details
