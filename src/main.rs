@@ -24,13 +24,18 @@ struct GameDetails {
     r#type: String
 }
 
+/// Takes the link href and the element and constructs the details for the game
 fn format_game_detail(href: &str, anchor: &ElementRef) -> GameDetails {
     let ending_re = Regex::new(r"/home$").unwrap();
     let id_re = Regex::new(r"/(product|bundles)/(.*)/?").unwrap();
+
+    // remove any '/home' from the end of the URL
     let clean_url = ending_re.replace(href, "");
     let clean_string = (&clean_url).to_string();
+    // captures the 'id' and 'type'
     let id_cap = id_re.captures(&clean_string).unwrap();
 
+    // grabs the span with the title
     let title_selector = Selector::parse("div > div > div > span:first-child").unwrap();
     let title = anchor.select(&title_selector).next().unwrap();
 
@@ -42,6 +47,7 @@ fn format_game_detail(href: &str, anchor: &ElementRef) -> GameDetails {
     }
 }
 
+/// Parses the provided dom and processes all the links for the different games
 fn create_game_details(dom: &String) -> Vec<GameDetails> {
     let fragment = Html::parse_fragment(dom);
     let selector = Selector::parse("main > div > div > div:last-child section > ul > li > a").unwrap();
@@ -60,6 +66,7 @@ async fn process_dom(req: Request<Body>) -> Result<Response<Body>> {
 
     match (req.method(), req.uri().path()) {
         (&Method::POST, "/scrape") => {
+            // Creates a new file
             let path = Path::new("scrapped-text.json");
             let display = path.display();
 
@@ -68,15 +75,21 @@ async fn process_dom(req: Request<Body>) -> Result<Response<Body>> {
                 Ok(file) => file,
             };
 
+            // Processes the incoming body
             let whole_body = hyper::body::aggregate(req).await?;
             let data: IncomingBody = serde_json::from_reader(whole_body.reader())?;
+
+            // Process the data into the game details
             let game_details = create_game_details(&data.dom);
             let details_json = serde_json::to_string(&game_details)?;
 
+            // Write the content to the file
             file.write(details_json.as_bytes())?;
 
-            let json = serde_json::to_string(&data)?;
-            *response.body_mut() = Body::from(json);
+            // Set the response body
+            *response.body_mut() = Body::from("{\"message\": \"success\"}");
+
+            // Set the response headers
             let mut map = HeaderMap::new();
             map.insert("Content-Type", header::HeaderValue::from_static("application/json"));
             map.insert("Access-Control-Allow-Origin", header::HeaderValue::from_static("*"));
