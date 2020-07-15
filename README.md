@@ -49,6 +49,8 @@ That should create a file on your system called `scrapped-text.json` with the sc
 
 At this point you are feel to do what you want with this data.
 
+There are some weird edge cases that are missed. For example [Ark](https://www.epicgames.com/store/en-US/product/ark/home), there are about 400 different editions/addons that each have their own page, but are only accessible through the Ark homepage and aren't in the listing page. I can imagine that it would be applicable to many games who have different editions/DLC.
+
 ## What am I doing with it?
 
 > Coming soon...
