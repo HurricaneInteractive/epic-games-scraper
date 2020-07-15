@@ -1,0 +1,25 @@
+{
+  "name": "epic-store-scraper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/HurricaneInteractive/epic-games-scraper.git",
+  "author": "HurricaneInteractive <hurricane.interactive@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^9.1.1",
+    "@commitlint/config-conventional": "^9.1.1",
+    "commitizen": "^4.1.2",
+    "cz-conventional-changelog": "^3.2.0",
+    "husky": "^4.2.5"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
